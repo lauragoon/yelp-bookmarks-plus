@@ -18,24 +18,38 @@ def gen_site_globals():
     global COLLECTION_TITLE
     COLLECTION_TITLE = COLLECTION_INFO.find_element(By.CLASS_NAME, "title").find_element(By.TAG_NAME, "h1").get_attribute("innerHTML")
 
-    global BOOKMARK_CONTAINER
-    BOOKMARK_CONTAINER = COLLECTION_INFO.find_element(By.CLASS_NAME, "js-content-list")
+    global BOOKMARK_AMT
+    BOOKMARK_AMT = int(COLLECTION_INFO.find_element(By.CLASS_NAME, "js-content-list").get_attribute("data-item-count"))
 
-    global COLLECTION_AMT
-    COLLECTION_AMT = int(BOOKMARK_CONTAINER.get_attribute("data-item-count"))
 
-    print(COLLECTION_AMT)
+def get_bookmarks():
+    temp_bookmarks = COLLECTION_INFO.find_elements(By.CLASS_NAME, "collection-item")
+    last_bookmark = None
+
+    while (last_bookmark is None or last_bookmark != temp_bookmarks[-1]):
+        last_bookmark = temp_bookmarks[-1]
+        DRIVER.execute_script("arguments[0].scrollIntoView();", temp_bookmarks[-1])
+        time.sleep(0.9)
+        temp_bookmarks = COLLECTION_INFO.find_elements(By.CLASS_NAME, "collection-item")
+
+    global BOOKMARKS
+    BOOKMARKS = COLLECTION_INFO.find_elements(By.CLASS_NAME, "collection-item")
+
+
+def process_bookmarks():
+    pass
+
 
 # Connect with webpage
 def connect_site(collections_url):
 
-    # support 3 browsers
+    # support 2 browsers
     driver = None
 
     try:
         s = Service(r'geckodriver.exe')
         firefox_opts = Options()
-        firefox_opts.add_argument('--headless')
+        # firefox_opts.add_argument('--headless')
         driver = webdriver.Firefox(service=s, options=firefox_opts)
     except SessionNotCreatedException:
         try:
@@ -52,7 +66,6 @@ def connect_site(collections_url):
     global DRIVER
     DRIVER = driver
 
-    gen_site_globals()
 
 # Run helper functions in order
 def run_script():
@@ -62,6 +75,8 @@ def run_script():
 
     time.sleep(0.5) # delay so don't start typing before site loads
 
+    gen_site_globals()
+    get_bookmarks()
 
 
 run_script()
