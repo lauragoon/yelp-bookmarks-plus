@@ -18,7 +18,13 @@ def gen_site_globals():
     global COLLECTION_TITLE
     COLLECTION_TITLE = COLLECTION_INFO.find_element(By.CLASS_NAME, "title").find_element(By.TAG_NAME, "h1").get_attribute("innerHTML")
 
-    print(COLLECTION_TITLE)
+    global BOOKMARK_CONTAINER
+    BOOKMARK_CONTAINER = COLLECTION_INFO.find_element(By.CLASS_NAME, "js-content-list")
+
+    global COLLECTION_AMT
+    COLLECTION_AMT = int(BOOKMARK_CONTAINER.get_attribute("data-item-count"))
+
+    print(COLLECTION_AMT)
 
 # Connect with webpage
 def connect_site(collections_url):
@@ -51,7 +57,7 @@ def connect_site(collections_url):
 # Run helper functions in order
 def run_script():
 
-    yelp_url = input("URL to Yelp bookmark collection:")
+    yelp_url = input("URL to Yelp bookmark collection: ")
     connect_site(yelp_url)
 
     time.sleep(0.5) # delay so don't start typing before site loads
