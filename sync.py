@@ -42,7 +42,7 @@ def process_bookmarks():
     bookmarks_csv = input("Do you have previously synced bookmarks CSV? (enter either filepath to CSV or 'no') ")
     if bookmarks_csv.lower() == "no":
         
-        with open(COLLECTION_TITLE.replace(" ", "_"), "w", encoding="utf-8") as f:
+        with open("collection_csvs/" + COLLECTION_TITLE.replace(" ", "_"), "w", encoding="utf-8") as f:
             writer = csv.writer(f)
 
             writer.writerow(("Name", "Given Tags", "Custom Tags"))
