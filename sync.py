@@ -1,5 +1,6 @@
 import csv
 import chromedriver_autoinstaller
+import os
 from selenium import webdriver
 from selenium.common.exceptions import SessionNotCreatedException
 from selenium.webdriver.common.by import By
@@ -41,6 +42,10 @@ def process_bookmarks():
 
     bookmarks_csv = input("Do you have previously synced bookmarks CSV? (enter either filepath to CSV or 'no') ")
     if bookmarks_csv.lower() == "no":
+
+        collections_csvs_dir_exists = os.path.exists("./collection_csvs")
+        if not collections_csvs_dir_exists:
+            os.makedirs("collection_csvs")
         
         with open("collection_csvs/" + COLLECTION_TITLE.replace(" ", "_"), "w", encoding="utf-8") as f:
             writer = csv.writer(f)
