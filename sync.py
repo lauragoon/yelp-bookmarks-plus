@@ -47,7 +47,7 @@ def process_bookmarks():
         if not collections_csvs_dir_exists:
             os.makedirs("collection_csvs")
         
-        with open("collection_csvs/" + COLLECTION_TITLE.replace(" ", "_") + ".csv", "w", encoding="utf-8") as f:
+        with open("collection_csvs/" + COLLECTION_TITLE.replace(" ", "_") + ".csv", "w", encoding="utf-8", newline="") as f:
             writer = csv.writer(f)
 
             writer.writerow(("Name", "Given Tags", "Custom Tags"))
