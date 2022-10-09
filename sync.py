@@ -1,3 +1,4 @@
+import csv
 import chromedriver_autoinstaller
 from selenium import webdriver
 from selenium.common.exceptions import SessionNotCreatedException
@@ -37,8 +38,29 @@ def get_bookmarks():
 
 
 def process_bookmarks():
-    for i in range(BOOKMARK_AMT):
-        print(BOOKMARKS[i].find_element(By.CLASS_NAME, "biz-name").get_attribute("innerHTML")[6:-7])
+
+    bookmarks_csv = input("Do you have previously synced bookmarks CSV? (enter either filepath to CSV or 'no') ")
+    if bookmarks_csv.lower() == "no":
+        
+        with open(COLLECTION_TITLE.replace(" ", "_"), "w", encoding="utf-8") as f:
+            writer = csv.writer(f)
+
+            writer.writerow(("Name", "Given Tags", "Custom Tags"))
+
+            for i in range(BOOKMARK_AMT):
+                biz_name = BOOKMARKS[i].find_element(By.CLASS_NAME, "biz-name").get_attribute("innerHTML")[6:-7]
+                given_tags = BOOKMARKS[i].find_element(By.CLASS_NAME, "category-str-list").find_elements(By.TAG_NAME, "a")
+                
+                given_tags_formatted = ""
+                for i in range(len(given_tags)):
+                    given_tags_formatted += given_tags[i].get_attribute("innerHTML")
+                    given_tags_formatted += ";"
+                given_tags_formatted = given_tags_formatted[:-1]
+
+                writer.writerow((biz_name, given_tags_formatted, ""))
+
+    else:
+        pass
 
 
 # Connect with webpage
@@ -50,7 +72,7 @@ def connect_site(collections_url):
     try:
         s = Service(r'geckodriver.exe')
         firefox_opts = Options()
-        # firefox_opts.add_argument('--headless')
+        firefox_opts.add_argument('--headless')
         driver = webdriver.Firefox(service=s, options=firefox_opts)
     except SessionNotCreatedException:
         try:
