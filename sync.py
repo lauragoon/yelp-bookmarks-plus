@@ -50,11 +50,12 @@ def process_bookmarks():
         with open("collection_csvs/" + COLLECTION_TITLE.replace(" ", "_") + ".csv", "w", encoding="utf-8", newline="") as f:
             writer = csv.writer(f)
 
-            writer.writerow(("Name", "Given Tags", "Custom Tags"))
+            writer.writerow(("Name", "City", "Given Tags", "Custom Tags"))
 
             for i in range(BOOKMARK_AMT):
                 biz_name = BOOKMARKS[i].find_element(By.CLASS_NAME, "biz-name").get_attribute("innerHTML")[6:-7]
                 given_tags = BOOKMARKS[i].find_element(By.CLASS_NAME, "category-str-list").find_elements(By.TAG_NAME, "a")
+                biz_addr = BOOKMARKS[i].find_element(By.CLASS_NAME, "addr-city").get_attribute("innerHTML")
                 
                 given_tags_formatted = ""
                 for i in range(len(given_tags)):
@@ -62,7 +63,7 @@ def process_bookmarks():
                     given_tags_formatted += ";"
                 given_tags_formatted = given_tags_formatted[:-1]
 
-                writer.writerow((biz_name, given_tags_formatted, ""))
+                writer.writerow((biz_name, biz_addr, given_tags_formatted, ""))
 
     else:
         pass
