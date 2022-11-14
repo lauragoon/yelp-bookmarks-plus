@@ -1,6 +1,4 @@
-import csv
 import chromedriver_autoinstaller
-import os
 from selenium import webdriver
 from selenium.common.exceptions import SessionNotCreatedException
 from selenium.webdriver.common.by import By
@@ -18,10 +16,13 @@ def gen_site_globals():
     COLLECTION_INFO = DRIVER.find_element(By.CLASS_NAME, "collection-left-pane")
 
     global COLLECTION_TITLE
-    COLLECTION_TITLE = COLLECTION_INFO.find_element(By.CLASS_NAME, "title").find_element(By.TAG_NAME, "h1").get_attribute("innerHTML")
+    COLLECTION_TITLE = COLLECTION_INFO.find_element(By.CLASS_NAME, "title") \
+                                      .find_element(By.TAG_NAME, "h1") \
+                                      .get_attribute("innerHTML")
 
     global BOOKMARK_AMT
-    BOOKMARK_AMT = int(COLLECTION_INFO.find_element(By.CLASS_NAME, "js-content-list").get_attribute("data-item-count"))
+    BOOKMARK_AMT = int(COLLECTION_INFO.find_element(By.CLASS_NAME, "js-content-list") \
+                                      .get_attribute("data-item-count"))
 
 
 def get_bookmarks():
@@ -37,36 +38,32 @@ def get_bookmarks():
     global BOOKMARKS
     BOOKMARKS = COLLECTION_INFO.find_elements(By.CLASS_NAME, "collection-item")
 
+    # scroll back to top for user view
+    DRIVER.execute_script("""
+                var element = document.getElementsByClassName("photo-box-grid")[0];
+                element.scrollIntoView();
+                """)
 
-def process_bookmarks():
 
-    bookmarks_csv = input("Do you have previously synced bookmarks CSV? (enter either filepath to CSV or 'no') ")
-    if bookmarks_csv.lower() == "no":
+def filter_bookmarks(official_filters=set(), custom_filters=set()):
+    for bookmark in BOOKMARKS:
+        # bookmark_name = bookmark.find_element(By.CLASS_NAME, "biz-name") \
+        #                         .find_element(By.TAG_NAME, "span").get_attribute("innerHTML")
+        bookmark_categories = set([category_item.get_attribute("innerHTML") \
+                                for category_item in \
+                                    bookmark.find_element(By.CLASS_NAME, "category-str-list") \
+                                            .find_elements(By.TAG_NAME, "a")])
+        bookmark_custom_tags = set(bookmark.find_element(By.CLASS_NAME, "item-note") \
+                                       .find_element(By.CLASS_NAME, "description") \
+                                       .find_element(By.TAG_NAME, "span") \
+                                       .get_attribute("innerHTML").split(","))
 
-        collections_csvs_dir_exists = os.path.exists("./collection_csvs")
-        if not collections_csvs_dir_exists:
-            os.makedirs("collection_csvs")
-        
-        with open("collection_csvs/" + COLLECTION_TITLE.replace(" ", "_") + ".csv", "w", encoding="utf-8", newline="") as f:
-            writer = csv.writer(f)
-
-            writer.writerow(("ID", "Name", "Given Tags", "Custom Tags"))
-
-            for i in range(BOOKMARK_AMT):
-                biz_id = BOOKMARKS[i].find_element(By.CLASS_NAME, "biz-name").get_attribute("href")[25:]
-                biz_name = BOOKMARKS[i].find_element(By.CLASS_NAME, "biz-name").get_attribute("innerHTML")[6:-7]
-                given_tags = BOOKMARKS[i].find_element(By.CLASS_NAME, "category-str-list").find_elements(By.TAG_NAME, "a")
-                
-                given_tags_formatted = ""
-                for i in range(len(given_tags)):
-                    given_tags_formatted += given_tags[i].get_attribute("innerHTML")
-                    given_tags_formatted += ";"
-                given_tags_formatted = given_tags_formatted[:-1]
-
-                writer.writerow((biz_id, biz_name, given_tags_formatted, ""))
-
-    else:
-        pass
+        if official_filters.isdisjoint(bookmark_categories) and \
+            custom_filters.isdisjoint(bookmark_custom_tags):
+            DRIVER.execute_script("""
+                var element = arguments[0];
+                element.parentNode.removeChild(element);
+                """, bookmark)
 
 
 # Connect with webpage
@@ -78,13 +75,13 @@ def connect_site(collections_url):
     try:
         s = Service(r'geckodriver.exe')
         firefox_opts = Options()
-        firefox_opts.add_argument('--headless')
+        # firefox_opts.add_argument('--headless')
         driver = webdriver.Firefox(service=s, options=firefox_opts)
     except SessionNotCreatedException:
         try:
             chromedriver_autoinstaller.install()
             chrome_opts = webdriver.ChromeOptions()
-            chrome_opts.add_argument('headless')
+            # chrome_opts.add_argument('headless')
             chrome_opts.add_experimental_option('excludeSwitches', ['enable-logging'])
             driver = webdriver.Chrome(options=chrome_opts)
         except SessionNotCreatedException: 
@@ -106,7 +103,7 @@ def run_script():
 
     gen_site_globals()
     get_bookmarks()
-    process_bookmarks()
+    filter_bookmarks(official_filters={"Food Trucks"})
 
 
 run_script()
