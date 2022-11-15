@@ -6,8 +6,6 @@ from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.firefox.service import Service
 import time
 
-# import sys
-# sys.path.append('../')
 
 # Keep track of global variables used to interact with webpage
 def gen_site_globals():
@@ -15,17 +13,6 @@ def gen_site_globals():
     global COLLECTION_INFO
     COLLECTION_INFO = DRIVER.find_element(By.CLASS_NAME, "collection-left-pane")
 
-    global COLLECTION_TITLE
-    COLLECTION_TITLE = COLLECTION_INFO.find_element(By.CLASS_NAME, "title") \
-                                      .find_element(By.TAG_NAME, "h1") \
-                                      .get_attribute("innerHTML")
-
-    global BOOKMARK_AMT
-    BOOKMARK_AMT = int(COLLECTION_INFO.find_element(By.CLASS_NAME, "js-content-list") \
-                                      .get_attribute("data-item-count"))
-
-
-def get_bookmarks():
     temp_bookmarks = COLLECTION_INFO.find_elements(By.CLASS_NAME, "collection-item")
     last_bookmark = None
 
@@ -47,8 +34,6 @@ def get_bookmarks():
 
 def filter_bookmarks(official_filters=set(), custom_filters=set()):
     for bookmark in BOOKMARKS:
-        # bookmark_name = bookmark.find_element(By.CLASS_NAME, "biz-name") \
-        #                         .find_element(By.TAG_NAME, "span").get_attribute("innerHTML")
         bookmark_categories = set([category_item.get_attribute("innerHTML") \
                                 for category_item in \
                                     bookmark.find_element(By.CLASS_NAME, "category-str-list") \
@@ -102,7 +87,6 @@ def run_script():
     time.sleep(0.5) # delay so don't start typing before site loads
 
     gen_site_globals()
-    get_bookmarks()
     filter_bookmarks(official_filters={"Food Trucks"})
 
 
