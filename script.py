@@ -27,24 +27,27 @@ def gen_site_globals():
 
     # scroll back to top for user view
     DRIVER.execute_script("""
-                var element = document.getElementsByClassName("photo-box-grid")[0];
-                element.scrollIntoView();
-                """)
+        var element = document.getElementsByClassName("photo-box-grid")[0];
+        element.scrollIntoView();
+        """)
 
 
 def filter_bookmarks(official_filters=set(), custom_filters=set()):
     for bookmark in BOOKMARKS:
-        bookmark_categories = set([category_item.get_attribute("innerHTML") \
+        bookmark_categories_set = set([category_item.get_attribute("innerHTML") \
                                 for category_item in \
                                     bookmark.find_element(By.CLASS_NAME, "category-str-list") \
                                             .find_elements(By.TAG_NAME, "a")])
-        bookmark_custom_tags = set(bookmark.find_element(By.CLASS_NAME, "item-note") \
+
+        bookmark_custom_tags = bookmark.find_element(By.CLASS_NAME, "item-note") \
                                        .find_element(By.CLASS_NAME, "description") \
                                        .find_element(By.TAG_NAME, "span") \
-                                       .get_attribute("innerHTML").split(","))
+                                       .get_attribute("innerHTML")
+        bookmark_custom_tags_set = set(bookmark_custom_tags.split(",")) \
+            if len(bookmark_custom_tags) > 0 else set()
 
-        if official_filters.isdisjoint(bookmark_categories) and \
-            custom_filters.isdisjoint(bookmark_custom_tags):
+        if not official_filters.issubset(bookmark_categories_set) or \
+            not custom_filters.issubset(bookmark_custom_tags_set):
             DRIVER.execute_script("""
                 var element = arguments[0];
                 element.parentNode.removeChild(element);
@@ -87,7 +90,12 @@ def run_script():
     time.sleep(0.5) # delay so don't start typing before site loads
 
     gen_site_globals()
-    filter_bookmarks(official_filters={"Food Trucks"})
+
+    o_filters = input("List desired filters on offical categories, separated by commas with no spaces (Press enter for none): ")
+    c_filters = input("List desired filters on custom tags, separated by commas spaces (Press enter for none): ")
+    o_filters_set = set(o_filters.split(",")) if len(o_filters) > 0 else set()
+    c_filters_set = set(c_filters.split(",")) if len(c_filters) > 0 else set()
+    filter_bookmarks(official_filters=o_filters_set, custom_filters=c_filters_set)
 
 
 run_script()
